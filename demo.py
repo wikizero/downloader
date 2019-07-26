@@ -1,4 +1,5 @@
 import requests
+import os
 
 url = "https://pic.ibaotu.com/00/51/34/88a888piCbRB.mp4"
 # url = 'https://www.cnblogs.com/duanxz/p/5126637.html'
@@ -27,8 +28,9 @@ _range.append(end_range)
 
 print(_range)
 
-import os
 
-print(os.path.getsize('测试视频.mp4'))
-print(os.path.getsize('download.mp4'))
+# print(os.path.getsize('测试视频.mp4'))
+# print(os.path.getsize('download.mp4'))
 
+# print(os.path.join('./', 'xx.jpg'))
+input = input('指定文件已存在，是否重新下载(Y/N)?')
