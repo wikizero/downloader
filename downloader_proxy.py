@@ -120,23 +120,8 @@ class Downloader():
 
 if __name__ == '__main__':
     # url = "https://pic.ibaotu.com/00/51/34/88a888piCbRB.mp4"
-    # url = 'https://gss3.baidu.com/6LZ0ej3k1Qd3ote6lo7D0j9wehsv/tieba-smallvideo-transcode/31_549d3fc76642c5b7ed3d1521095f9e47_2.mp4'
-    # url = 'https://emb4.xxxtube.club/x-videos/b1/e6/1498375744.00926.mp4?e=1564403050&hash=0d9ndJahqifyCro7H2V9gA'
-    # https://emb4.xxxtube.club/x-videos/f2/1e/1496954858.14755.mp4?e=1564401494&hash=y1K36bZaNak0CEJeD9rUtg
-    # https://emb4.teenpornlikes.com/like_free/c5/0a/1514243936.40976.mp4?e=1564403193&hash=xyiV-2jxhzyzI8kc2_ggEQ
-    # https://emb4.pornopedia.pro/view/df/4c/1497015372.07184.mp4?e=1564403277&hash=dpMcR1CQNGZhGPTlT2rY8g
-    # https://emb3.pornopedia.pro/view/62/19/1453762114.21163.mp4?e=1564403293&hash=q1_NRDQ7qLtoFvIW80b4zw
-    # https://emb4.asianpornset.com/hd-asian/ba/75/1496328674.23608.mp4?e=1564403971&hash=yfvhb-LCRDN-mzcmD8t7dg
-
-    url = 'https://emb4.asianpornset.com/hd-asian/ba/75/1496328674.23608.mp4?e=1564403971&hash=yfvhb-LCRDN-mzcmD8t7dg'
-    # https://emb4.online-xxxmovies.com/videos/40/1e/1497120356.13946.mp4?e=1564404948&hash=pW27NBvYUbl76_Dhr1MpMA
-
-    # https://dp1.t8cdn.com/201805/12/48870011/mp4_hd720_48870011.mp4?ri=1638400&rs=1816&ttl=1564323331&hash=87a801fec40b86aab3f8a7e3f34c8191
-    # https://ep3.t8cdn.com/videos/201906/28/232109752/720P_1500K_232109752.mp4?validfrom=1564316200&validto=1564323400&rate=152k&burst=1400k&ip=27.37.146.137&hash=24Jm7zL%2FKs0rJfV7TTWgYE0FA4I%3D
-    # https://emb4.asianpornset.com/hd-asian/c6/c0/1496904560.12832.mp4?e=1564406904&hash=-dm9m98dNH7Q1cmTL1m3QA
+    url = 'https://gss3.baidu.com/6LZ0ej3k1Qd3ote6lo7D0j9wehsv/tieba-smallvideo-transcode/31_549d3fc76642c5b7ed3d1521095f9e47_2.mp4'
     # TODO 代理
-    # https://xh.video/xembed.php?video=8845602
-    # https://asianpornset.com/zh-cn/clip/cTAtMTEzNy0xNDIyMzQyNA==/Black-Pantyhose-Sales-teenager-having-Excited-Outdoor-xxx-clip/?open
     d = Downloader(url, filename='9014aa10pxr0847.mp4')
     # print(d.check_url())
     d.download()
