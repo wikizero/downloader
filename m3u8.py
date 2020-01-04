@@ -157,5 +157,6 @@ if __name__ == '__main__':
     # 直接从网络m3u8文件下载视频  不确定能否多线程、代理
     # ffmpeg -i https://ip182.com/media=hlsA/ssd2/21/8/184547828.m3u8 -acodec copy -vcodec copy output.mp4
 
+    # How to use it in your work!
     url = 'https://youku.cdn4-okzy.com/20191217/3440_29f38847/1000k/hls/index.m3u8'
     Downloader(url, filename='output.mp4').run(max_workers=10)

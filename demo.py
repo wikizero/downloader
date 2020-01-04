@@ -28,9 +28,19 @@ _range.append(end_range)
 
 print(_range)
 
+import time
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
-# print(os.path.getsize('测试视频.mp4'))
-# print(os.path.getsize('download.mp4'))
 
-# print(os.path.join('./', 'xx.jpg'))
-input = input('指定文件已存在，是否重新下载(Y/N)?')
+def func(n):
+    time.sleep(n)
+    return "n: " + str(n)
+
+
+pool = ThreadPoolExecutor(max_workers=4)
+lst = [10, 9, 4, 1, 5, 8, 3, 12, 3, 5, 7]
+result = [pool.submit(func, i) for i in lst]
+
+for i in as_completed(result):
+    print(i.result())
+

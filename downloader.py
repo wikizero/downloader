@@ -128,10 +128,6 @@ class Downloader():
 
 if __name__ == '__main__':
     url = "https://pic.ibaotu.com/00/51/34/88a888piCbRB.mp4"
-    # url = 'https://gss3.baidu.com/6LZ0ej3k1Qd3ote6lo7D0j9wehsv/tieba-smallvideo-transcode/31_549d3fc76642c5b7ed3d1521095f9e47_2.mp4'
     d = Downloader(url, filename='花切.mp4')
-    # print(d.check_url())
     d.download()
     # TODO 代理 重试
-    # TODO du -h
-    # 从视频中截图图片
