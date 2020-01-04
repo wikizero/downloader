@@ -1,6 +1,5 @@
 import os
 import urllib3
-import shutil
 from traceback import print_exc
 from pathlib import Path
 from urllib import parse
@@ -10,7 +9,6 @@ import requests
 from tqdm import tqdm
 from faker import Faker
 from retry import retry
-from ffmpy import FFmpeg
 
 urllib3.disable_warnings()
 
@@ -26,6 +24,9 @@ class Downloader():
         self.dst = dst or os.getcwd()
         self.filename = filename or 'output.mp4'
 
+        # ts 文件缓存目录
+        self.tmp_folder = 'temp'
+
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': Faker().user_agent()})
         self.session.verify = False
@@ -39,7 +40,7 @@ class Downloader():
         """
         text = self.session.get(self.url).text
 
-        return [parse.urljoin(self.url, row.strip()) for row in text.split('\n') if not row.startswith('#')]
+        return [parse.urljoin(self.url, row.strip()) for row in text.split('\n') if not row.startswith('#')][:20]
 
     def check_save_folder(self):
         """
@@ -51,13 +52,13 @@ class Downloader():
             raise Exception(f'{self.dst} is not a dir!')
 
         # 如果temp目录不存在便创建
-        save_folder = dst_folder / 'temp'
+        save_folder = Path(self.tmp_folder)
         if not save_folder.exists():
             save_folder.mkdir()
 
         return save_folder
 
-    def download(self, ts_url, save_folder):
+    def download(self, ts_url, save_folder, pbar):
         """
         根据ts文件地址下载视频文件并保存到指定目录
         * 当前处理递归下载！！！
@@ -72,6 +73,7 @@ class Downloader():
             filepath = save_folder / filename
             if filepath.exists():
                 # 文件已存在 跳过
+                pbar.update(1)
                 return str(filepath)
 
             res = self.session.get(ts_url)
@@ -83,23 +85,43 @@ class Downloader():
             with filepath.open('wb') as fp:
                 fp.write(res.content)
 
-            print(ts_url)
         except Exception as e:
-            print_exc()
-            return self.download(ts_url, save_folder)
+            print_exc(e)
+            return self.download(ts_url, save_folder, pbar)
 
+        pbar.update(1)
         return str(filepath)
 
     def merge(self, ts_file_paths):
         """
         ts文件合成
+        ffmpeg -i "concat:file01.ts|file02.ts|file03.ts" -acodec copy -vcodec copy output.mp4
+        ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
         :return:
         """
-        join_path = '|'.join(ts_file_paths)
-        command = f'ffmpeg -i "concat:{join_path}" -acodec copy -vcodec copy -absf aac_adtstoasc {self.filename}'
-        print(len(command))
-        print(command)
+        filenames = [os.path.split(row)[-1] for row in sorted(ts_file_paths)]
+        txt_content = '\n'.join([f'file {row}' for row in filenames if row.endswith('.ts')])
+
+        txt_filename = filenames[0].replace('.ts', '.txt')
+        txt_filepath = Path(self.tmp_folder) / txt_filename
+        with txt_filepath.open('w+') as fp:
+            fp.write(txt_content)
+
+        # 拼接ts文件
+        command = f'ffmpeg -f concat -safe 0 -i {self.tmp_folder}/{txt_filename} -c copy {self.filename}'
         os.system(command)
+
+        # 删除txt文件
+        if txt_filepath.exists():
+            os.remove(txt_filepath)
+
+    @staticmethod
+    def remove_ts_file(ts_file_paths):
+        for row in ts_file_paths:
+            try:
+                os.remove(row)
+            except Exception as e:
+                print_exc(e)
 
     def run(self, max_workers=None):
         """
@@ -108,31 +130,32 @@ class Downloader():
         """
         # 获取ts文件地址列表
         ts_urls = self.parse_m3u8_url()
-        print(f'ts file nums: {len(ts_urls)}')
+
+        # 初始化进度条
+        pbar = tqdm(total=len(ts_urls), initial=0, unit=' file', unit_scale=True, desc=self.filename, unit_divisor=1)
 
         # 获取ts文件保存目录
         save_folder = self.check_save_folder()
 
         # 创建线程池，将ts文件下载任务推入线程池
         pool = ThreadPoolExecutor(max_workers=max_workers)
-        ret = [pool.submit(self.download, url, save_folder) for url in ts_urls]
-        ts_file_paths = ['temp/' + task.result().split('/')[-1] for task in ret]
+        ret = [pool.submit(self.download, url, save_folder, pbar) for url in ts_urls]
+        ts_file_paths = [task.result() for task in ret]
+
+        # 关闭进度条
+        pbar.close()
 
         # 合并ts文件
         self.merge(ts_file_paths)
 
-        # 删除临时目录以及ts文件
-        # shutil.rmtree(save_folder)
+        # 删除ts文件
+        self.remove_ts_file(ts_file_paths)
 
 
 if __name__ == '__main__':
-    pass
     # https://www.cnblogs.com/faberbeta/p/ffmpeg001.html
-    # 直接从网络m3u8文件下载视频  不确定能否多线程
+    # 直接从网络m3u8文件下载视频  不确定能否多线程、代理
     # ffmpeg -i https://ip182.com/media=hlsA/ssd2/21/8/184547828.m3u8 -acodec copy -vcodec copy output.mp4
 
-    # 命令行合并ts文件 亲测OK
-    # ffmpeg -i "concat:file001.ts|file002.ts|file003.ts|file004.ts......n.ts" -acodec copy -vcodec copy out.mp4
-
-    # url = 'https://youku.cdn4-okzy.com/20191217/3440_29f38847/1000k/hls/index.m3u8'
-    Downloader(url, filename='out2.mp4').run(max_workers=3)
+    url = 'https://youku.cdn4-okzy.com/20191217/3440_29f38847/1000k/hls/index.m3u8'
+    Downloader(url, filename='output.mp4').run(max_workers=10)
