@@ -1,6 +1,5 @@
 import os
 import urllib3
-from traceback import print_exc
 from pathlib import Path
 from urllib import parse
 from concurrent.futures import ThreadPoolExecutor
@@ -40,7 +39,7 @@ class Downloader():
         """
         text = self.session.get(self.url).text
 
-        return [parse.urljoin(self.url, row.strip()) for row in text.split('\n') if not row.startswith('#')][:20]
+        return [parse.urljoin(self.url, row.strip()) for row in text.split('\n') if not row.startswith('#')]
 
     def check_save_folder(self):
         """
@@ -86,7 +85,7 @@ class Downloader():
                 fp.write(res.content)
 
         except Exception as e:
-            print_exc(e)
+            print(e)
             return self.download(ts_url, save_folder, pbar)
 
         pbar.update(1)
@@ -107,13 +106,18 @@ class Downloader():
         with txt_filepath.open('w+') as fp:
             fp.write(txt_content)
 
+        dst_file = Path(self.dst) / self.filename
+
         # 拼接ts文件
-        command = f'ffmpeg -f concat -safe 0 -i {self.tmp_folder}/{txt_filename} -c copy {self.filename}'
+        command = f'ffmpeg -f concat -safe 0 -i {self.tmp_folder}/{txt_filename} -c copy {dst_file}'
+        print(command)
         os.system(command)
 
         # 删除txt文件
         if txt_filepath.exists():
             os.remove(txt_filepath)
+
+        return dst_file
 
     @staticmethod
     def remove_ts_file(ts_file_paths):
@@ -121,7 +125,7 @@ class Downloader():
             try:
                 os.remove(row)
             except Exception as e:
-                print_exc(e)
+                print(e)
 
     def run(self, max_workers=None):
         """
@@ -146,10 +150,13 @@ class Downloader():
         pbar.close()
 
         # 合并ts文件
-        self.merge(ts_file_paths)
+        dst_file = self.merge(ts_file_paths)
 
         # 删除ts文件
-        self.remove_ts_file(ts_file_paths)
+        if dst_file.exists():
+            self.remove_ts_file(ts_file_paths)
+        else:
+            print('文件无法合成！！！')
 
 
 if __name__ == '__main__':
@@ -158,5 +165,12 @@ if __name__ == '__main__':
     # ffmpeg -i https://ip182.com/media=hlsA/ssd2/21/8/184547828.m3u8 -acodec copy -vcodec copy output.mp4
 
     # How to use it in your work!
-    url = 'https://youku.cdn4-okzy.com/20191217/3440_29f38847/1000k/hls/index.m3u8'
-    Downloader(url, filename='output.mp4').run(max_workers=10)
+    # https://baidu.com-l-baidu.com/20190212/11761_6e9514c4/1000k/hls/index.m3u8 失控 第一集
+    # https://baidu.com-l-baidu.com/20190212/11760_c7050592/1000k/hls/index.m3u8
+    # https://baidu.com-l-baidu.com/20190212/11759_0942ae49/1000k/hls/index.m3u8
+    # https://baidu.com-l-baidu.com/20190212/11758_57608877/1000k/hls/index.m3u8
+    # https://baidu.com-l-baidu.com/20190212/11757_988dfd26/1000k/hls/index.m3u8
+    # https://baidu.com-l-baidu.com/20190212/11756_840a8c0d/1000k/hls/index.m3u8
+    url = 'https://baidu.com-l-baidu.com/20190212/11756_840a8c0d/1000k/hls/index.m3u8'
+
+    Downloader(url, filename='6.mp4').run(max_workers=10)
